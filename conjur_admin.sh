@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# FUNCTION DEFINITIONS
-
-# Auxiliary out of main menu:
-
 # Function to prompt for user input with defaults from variable.sh
 function get_user_input() {
 
@@ -30,7 +26,7 @@ function get_user_input() {
   read -p "Enter username: " username
 
   # Prompt for password (no default, input is hidden)
-  read -s -p "Enter password (will not be echoed): " password
+  read -s -p "Please enter your password (input will be hidden): " password
   echo
 }
 
@@ -61,9 +57,6 @@ function display_info() {
     echo "Conjur Admin Script"
     echo "Release: Alpha v1"
     echo "====================================="
-    echo ""
-    echo "Making Conjur Enterprise Admin's life easier... or at least pretending to!"
-    echo "If something breaks, just remember: it was probably 'working on my machine :)'"
 }
 
 function collect_node_data() {
@@ -104,10 +97,12 @@ stand2=`grep -i standby2DNS variable.sh | awk -F"=" '{ print $2 } '`
 key=`grep -i privateKey variable.sh | awk -F"=" '{ print $2 } '`
 folder=`pwd`
 
-# This is the script that is copied and executed in each of the nodes:
+# This is the script which is copied and executed in each of the nodes.
+# Add or remove checks according your needs.
+
 tee $folder/checker.sh <<EOF > /dev/null
   echo '=========================================================================='
-  echo "$(hostname) START"
+  hostname ; echo "START"
   ip ro | awk '{print $9}' | sort -u
   echo '=========================================================================='
   echo
@@ -124,8 +119,7 @@ tee $folder/checker.sh <<EOF > /dev/null
   echo '## Health Check' ; echo ; curl -s -k https://localhost/health
   echo
   echo '=========================================================================='
-  echo "$(hostname)"
-  echo "END"
+  hostname ; echo "END"
   echo '=========================================================================='
   echo
 EOF
@@ -138,8 +132,7 @@ for i in $vipha $leader $stand1 $stand2; do
   ports_open=0  # Initialize a variable to track open ports
 
   for port in 5432 1999 443; do
-    nc -zv "$i" "$port"
-    output=$(nc -zv "$i" "$port" 2>&1)
+    output=$(nc -zv "$i" "$port" 2>&1 | tee /dev/tty)
     echo "$output" | tee -a conjur_checker.log
 
     # Check if the output indicates that the port is open
@@ -434,8 +427,6 @@ authenticate
 # Export all variables for the logged in user:
 conjur list -k variable  | awk -F ":" ' { print $3 } ' |  awk -F '"' ' { print $1 } ' >  variables.out
 
-# | sed 's/ /\\ /g' 
-
 # Array of variable keys to fetch (you can modify this as needed)
 # VARIABLE_KEYS=("username" "password")
 
@@ -463,7 +454,7 @@ function get_objects_list() {
   echo "Exporting the effective policies"
   echo "This script will create the folder structure with the policies inside them"
 
-  # This script exports Conjur Loaded policies, creating folder structure accordignly
+  # This script exports Conjur Loaded policies, creating policy tree structure as folders structure
 
   # PREREQUISITES:
 
@@ -655,4 +646,3 @@ while true; do
     echo ""
     read -p "Press [Enter] key to continue..."
 done
-

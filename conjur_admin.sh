@@ -548,12 +548,10 @@ function variable_show() {
 
             case $action in
                 1)
-					echo
+                    echo
                     echo "Showing secret value for: $option"
-					echo
-					SECRET_VALUE=$(curl -s -k -H "Authorization: Token token=\"$TOKEN\"" \
-					https://"$conjururl"/api/secrets/"$account"/variable/"$option")
-
+				    echo
+					SECRET_VALUE=$(curl -s -k -H "Authorization: Token token=\"$TOKEN\"" https://"$conjururl"/api/secrets/"$account"/variable/"$option")
 					# Check if the secret value was successfully retrieved
 					if [[ -z "$SECRET_VALUE" ]]; then
 						echo "Error: No secret found for variable: $option"

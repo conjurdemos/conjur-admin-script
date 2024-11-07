@@ -90,15 +90,15 @@ esac
 
 checknodes() {
 
+# This is the script which is copied and executed in each of the nodes.
+# Add or remove checks according your needs.
+
 vipha=`grep -i clusterDNS variable.sh | awk -F"=" '{ print $2 } '`
 leader=`grep -i masterDNS variable.sh | awk -F"=" '{ print $2 } '`
 stand1=`grep -i standby1DNS variable.sh | awk -F"=" '{ print $2 } '`
 stand2=`grep -i standby2DNS variable.sh | awk -F"=" '{ print $2 } '`
 key=`grep -i privateKey variable.sh | awk -F"=" '{ print $2 } '`
 folder=`pwd`
-
-# This is the script which is copied and executed in each of the nodes.
-# Add or remove checks according your needs.
 
 tee $folder/checker.sh <<EOF > /dev/null
   echo '=========================================================================='
@@ -107,17 +107,26 @@ tee $folder/checker.sh <<EOF > /dev/null
   echo '=========================================================================='
   echo
   echo '## /etc/hosts' ; echo ; cat /etc/hosts ; echo
+  echo '=========================================================================='
   echo '## /etc/hostname' ; echo ; cat /etc/hostname ; echo
+  echo '=========================================================================='
   echo '## /etc/resolv.conf' ; echo ; cat /etc/resolv.conf ; echo
+  echo '=========================================================================='
   echo '## uname -a' ; echo ; uname -a ; echo
+  echo '=========================================================================='
   echo '## Selinux Status' ; echo ; sestatus ; echo
+  echo '=========================================================================='
   echo '## Podman Version' ; echo ; podman version ; echo
+  echo '=========================================================================='
   echo '## Filesystem Check' ; echo ; df -Ph $conjfol ; echo
+  echo '=========================================================================='
   echo '## Folder Permissions Check' ; echo ; ls -lrat $conjfol ; echo
+  echo '=========================================================================='
   # echo '## Conainer Appliance logs' ; echo ; podman logs `podman ps | awk '{print $14}' | grep -v '^$'` ; echo
-  echo '## Info Check' ; echo ; curl -s -k https://localhost/info ; echo -e "\n\n\n"
-  echo '## Health Check' ; echo ; curl -s -k https://localhost/health
-  echo
+  # echo '=========================================================================='
+  echo '## Info Check' ; echo ; curl -s -k https://localhost/info ; echo
+  echo '=========================================================================='
+  echo '## Health Check' ; echo ; curl -s -k https://localhost/health ; echo
   echo '=========================================================================='
   hostname ; echo "END"
   echo '=========================================================================='
@@ -128,7 +137,7 @@ for i in $vipha $leader $stand1 $stand2; do
   echo
   echo "==========================================================================" >> conjur_checker.log
   echo "Network Check on $i" >> conjur_checker.log
-  echo "==========================================================================" >> conjur_checker.log
+  
   ports_open=0  # Initialize a variable to track open ports
 
   for port in 5432 1999 443; do
@@ -246,6 +255,7 @@ compare_health_status() {
 # Function to compare other parameters across all nodes
 compare_parameters() {
     local parameter_name="$1"
+    echo "$1"
     shift
     local values=("$@")
 

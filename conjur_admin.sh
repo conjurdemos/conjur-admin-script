@@ -211,19 +211,11 @@ parse_node_data() {
 
     node_name=$(echo "$node_data" | grep -m1 'Network Check on' | awk '{print $4}')
     release_version=$(echo "$node_data" | grep '"release"' | awk -F\" '{print $4}')
-
-    # Updated pattern to capture the Podman version correctly
     podman_version=$(echo "$node_data" | grep -A3 '## Podman Version' | grep -m1 'Version:' | awk -F': ' '{print $2}' | sed 's/[[:space:]]\+/ /g')
-
     selinux_status=$(echo "$node_data" | grep -A2 '## Selinux Status' | grep 'SELinux status:' | awk '{print $3}')
-
-    # Improved pattern for matching the "Node Role"
     node_role=$(echo "$node_data" | grep -E '"role"|Node Role' | awk -F\" '{print $4}' | head -1)
-
     health_status=$(echo "$node_data" | grep '"degraded": true' | wc -l)
-    
-    # grep '"degraded": false' conjur_checker.log | wc -l
-
+        
     # Return the parsed data in a structured format
     echo "$node_name|$release_version|$podman_version|$selinux_status|$node_role|$health_status"
 }
@@ -343,10 +335,7 @@ done
 
 function export_policies() {
 
-echo "Exporting the effective policies"
-echo "This script will create the folder structure with the policies inside them"
-
-# This script exports Conjur Loaded policies, creating folder structure accordignly
+echo "This function exports Conjur Loaded policies, creating policy tree structure in folders"
 
 # PREREQUISITES:
 
@@ -356,16 +345,12 @@ echo "This script will create the folder structure with the policies inside them
 # 4- Conjur valid administrative credentials for getting a valid token.
 
 # Prompt user for input
-get_user_input  # This will gather the values and set variables
+get_user_input
 
-# Now you can use $conjururl, $account, $username, and $password in your script
+# Display input
 echo "Using Conjur URL: $conjururl"
 echo "Using Conjur Account: $account"
 echo "Username: $username"
-
-# Call the function again elsewhere in the script if needed
-# get_user_input
-
 
 # Fetch the token using the username and password
 AUTHN_TOKEN=$(curl -s -k --user "$username:$password" https://"$conjururl"/authn/"$account"/login)
@@ -386,7 +371,6 @@ TOKEN=$(curl -s -k --location --globoff "https://"$conjururl"/api/authn/"$accoun
 # echo "Authentication token: $TOKEN"
 
 # Export Current Policies structure:
-
 mkdir -p ~/policies_output
 cd ~/policies_output
 conjur list -k policy | awk -F ":"  ' { print $3 } ' | sed 's/..$//' > policies.out
@@ -427,7 +411,7 @@ authenticate
 # Export all variables for the logged in user:
 conjur list -k variable  | awk -F ":" ' { print $3 } ' |  awk -F '"' ' { print $1 } ' >  variables.out
 
-# Array of variable keys to fetch (you can modify this as needed)
+# Array of variable keys to fetch (modify this as needed)
 # VARIABLE_KEYS=("username" "password")
 
 # Iterate over the variable keys and fetch their values
@@ -451,11 +435,8 @@ done
 
 function get_objects_list() {
 
-  echo "Exporting the effective policies"
-  echo "This script will create the folder structure with the policies inside them"
-
-  # This script exports Conjur Loaded policies, creating policy tree structure as folders structure
-
+  echo "This function displays the total number of objects loaded in Conjur"
+  
   # PREREQUISITES:
 
   # 1- Conjur enterprise running version 13.4 or below.
@@ -470,10 +451,6 @@ function get_objects_list() {
   echo "Using Conjur URL: $conjururl"
   echo "Using Conjur Account: $account"
   echo "Username: $username"
-
-  # Call the function again elsewhere in the script if needed
-  # get_user_input
-
 
   # Fetch the token using the username and password
   AUTHN_TOKEN=$(curl -s -k --user "$username:$password" https://"$conjururl"/authn/"$account"/login)
@@ -493,7 +470,7 @@ function get_objects_list() {
   # Only for debugging
   # echo "Authentication token: $TOKEN"
 
-# HERE THE API CALL
+# Api call for objects summary
 curl -s -k -X GET "https://"$conjururl"/resources/"$account"" -H "Authorization: Token token=\"$TOKEN\"" -H "Content-Type: application/x-yaml" | jq '
     {
         Group: [.[] | select(.id | contains("group"))] | length,

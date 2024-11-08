@@ -164,13 +164,12 @@ for i in $vipha $leader $stand1 $stand2; do
     if [[ "$output" == *"Connected"* ]]; then
       ports_open=1  # Mark that at least one port is open
     fi
-  done
-
-  # If no ports are open, exit the outer loop
-  if [ $ports_open -eq 0 ]; then
+      # If no ports are open, exit the outer loop
+    if [ $ports_open -eq 0 ]; then
     echo "No open ports found on $i. Exiting for this host." >> conjur_checker.log
     continue  # Skip to the next host
   fi
+  done
 
   # Only copy and execute the script if there are open ports
   folder=$(pwd)

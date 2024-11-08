@@ -72,7 +72,9 @@ echo   "[+] Conjur appliance must be running on all three HA Cluster nodes: One 
 echo   "[+] This script ($0) and variable.sh should be located in the same directory."
 echo   "[+] SSH access is required for all nodes, with the full path to the private key specified in variable.sh."
 echo
-read -p "    Introduce Conjur installation folder (default /opt/cyberark/conjur) Use default (y/n): " yesno
+read -p "    Enter the Conjur installation folder (default /opt/cyberark/conjur): Use default (y/n): " yesno
+read -p "    Enter the username for accessing Conjur Linux servers (default conjur): Use default (y/n): " luser
+
 echo ; echo > conjur_checker.log
 
 case $yesno in
@@ -80,7 +82,21 @@ case $yesno in
   conjfol='/opt/cyberark/conjur'
   ;;
   n)
-  read -p "[i] Introduce Conjur installation folder: " conjfol
+  read -p "[i] Enter the custom Conjur installation folder: " conjfol
+  ;;
+  *)
+  echo "Invalid Entry. Type: 'y' or 'n'"
+  exit
+  ;;
+esac
+
+
+case $luser in
+  y)
+  user='conjur'
+  ;;
+  n)
+  read -p "[i] Enter the custom username for SSH Conjur Linux hosts: " user
   ;;
   *)
   echo "Invalid Entry. Type: 'y' or 'n'"
@@ -158,9 +174,9 @@ for i in $vipha $leader $stand1 $stand2; do
 
   # Only copy and execute the script if there are open ports
   folder=$(pwd)
-  cat $folder/checker.sh | ssh -i $key -l ec2-user $i "cat > /tmp/checker.sh"
-  ssh -i $key -l ec2-user $i "chmod +x /tmp/checker.sh"
-  ssh -i $key -l ec2-user $i /tmp/checker.sh bash
+  cat $folder/checker.sh | ssh -i $key -l $user $i "cat > ~/checker.sh"
+  ssh -i $key -l $user $i "chmod +x ~/checker.sh"
+  ssh -i $key -l $user $i ~/checker.sh bash
 done
 
 }
@@ -255,7 +271,6 @@ compare_health_status() {
 # Function to compare other parameters across all nodes
 compare_parameters() {
     local parameter_name="$1"
-    echo "$1"
     shift
     local values=("$@")
 
@@ -389,10 +404,10 @@ conjur list -k policy | awk -F ":"  ' { print $3 } ' | sed 's/..$//' > policies.
 
 for i in `cat policies.out`
     do mkdir -p ~/policies_output/"$i"
-    echo "[i] Extracting policy "$i"..."
+    echo "[i] Extracting policy "$i""
     curl -s -k -X GET "https://"$conjururl"/policies/"$account"/policy/"$i"" -H "Authorization: Token token=\"$TOKEN\"" -H "Content-Type: application/x-yaml" > ~/policies_output/"$i"/policy.yaml
     echo "# conjur policy load -b `echo "$i" | sed 's/\/[^\/]*$//'` -f policy.yaml" | cat - ~/policies_output/"$i"/policy.yaml > temp && mv temp ~/policies_output/"$i"/policy.yaml
-    echo "[+] Policy "$i" Done!" ; echo
+    echo "[+] Policy "$i" successful!" ; echo
 done
 
 echo "Export done, please check ~/policies_output/* folders"

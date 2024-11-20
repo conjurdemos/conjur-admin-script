@@ -1,0 +1,56 @@
+
+AutomationVault/db/password
+AutomationVault/db/url
+AutomationVault/db/username
+conjur/authn-jwt/dev-cluster/audience
+conjur/authn-jwt/dev-cluster/identity-path
+conjur/authn-jwt/dev-cluster/issuer
+conjur/authn-jwt/dev-cluster/public-keys
+conjur/authn-jwt/dev-cluster/token-app-property
+conjur/authn-jwt/jenkins/ca-cert
+conjur/authn-jwt/jenkins/identity-path
+conjur/authn-jwt/jenkins/issuer
+conjur/authn-jwt/jenkins/jwks-uri
+conjur/authn-jwt/jenkins/token-app-property
+conjur/authn-jwt/k8slab/audience
+conjur/authn-jwt/k8slab/identity-path
+conjur/authn-jwt/k8slab/issuer
+conjur/authn-jwt/k8slab/jwks-uri
+conjur/authn-jwt/k8slab/public-keys
+conjur/authn-jwt/k8slab/token-app-property
+conjur/authn-k8s/dev-cluster/ca/cert
+conjur/authn-k8s/dev-cluster/ca/key
+conjur/authn-k8s/dev-cluster/kubernetes/api-url
+conjur/authn-k8s/dev-cluster/kubernetes/ca-cert
+conjur/authn-k8s/dev-cluster/kubernetes/service-account-token
+data/eu/ansible/secrets/host01/host
+data/eu/ansible/secrets/host01/pass
+data/eu/ansible/secrets/host01/user
+data/eu/ansible/secrets/host02/host
+data/eu/ansible/secrets/host02/pass
+data/eu/ansible/secrets/host02/user
+followertest
+jenkins-apps/ADDR
+jenkins-apps/aquasec
+jenkins-apps/nexus
+jenkins-apps/sonarqube
+jenkins-apps/TEST
+k8s-apps/TEST
+secrets/password
+secrets/username
+vault/lob1/exercise2safe/exercise2/password
+vault/lob1/exercise2safe/exercise2/username
+vault/lob1/k8sapp1/k8sapp1creds/password
+vault/lob1/k8sapp1/k8sapp1creds/username
+vault/lob1/k8sapps/app1/password
+vault/lob1/k8sapps/app1/username
+vault/lob1/k8sapps/app2/password
+vault/lob1/k8sapps/app2/username
+vault/lob1/PAM_Synced_secrets/Operating System-UnixSSH-10.0.1.10-unixusername/password
+vault/lob1/PAM_Synced_secrets/Operating System-UnixSSH-10.0.1.10-unixusername/username
+vault/lob1/PAM_Synced_secrets/Operating System-UnixSSH-1.1.1.1-username/password
+vault/lob1/PAM_Synced_secrets/Operating System-UnixSSH-1.1.1.1-username/username
+vault/lob1/PAM_Synced_secrets/testverisure/password
+vault/lob1/PAM_Synced_secrets/testverisure/username
+vault/lob1/SPOZ-AWS-APP1-TST/URC/password
+vault/lob1/SPOZ-AWS-APP1-TST/URC/username

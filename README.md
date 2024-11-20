@@ -1,22 +1,8 @@
-# {Your project name}
-TODO: Insert brief description of your project
+# Conjur Admin Script
+A powerful automation script for managing and interacting with CyberArk Conjur.
+This repository provides an easy-to-use tool for common administrative tasks.
 
 ## Certification level
-TODO: Select the appropriate certification level section below, and remove all others.
-
-{Community}
-![](https://img.shields.io/badge/Certification%20Level-Community-28A745?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
-
-This repo is a **Community** level project. It's a community contributed project that **is not reviewed or supported
-by CyberArk**. For more detailed information on our certification levels, see [our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
-
-{Trusted}
-![](https://img.shields.io/badge/Certification%20Level-Trusted-007BFF?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
-
-This repo is a **Trusted** level project. It's been reviewed by CyberArk to verify that it will securely
-work with Conjur Open Source as documented. For more detailed  information on our certification levels, see
-[our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
-
 {Certified}
 ![](https://img.shields.io/badge/Certification%20Level-Certified-6C757D?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
 
@@ -26,14 +12,16 @@ more detailed  information on our certification levels, see [our community guide
 
 ## Requirements
 
-TODO: Add any requirements that apply to your project here. Which Conjur Open Source / Enterprise versions is it
-compatible with? Does it integrate with other tools / projects - and if so, what versions of those
-does it require?
+Specific functions such as "Export the effective policy" requires Conjur Open Source / Enterprise 13.4 or higher.
+Other functions can work with previous versions.
 
 ## Usage instructions
 
-TODO: add details for how to use your project. Examples can be quite nice here. You should have
-a high level overview of the benefit of your project and its main use cases.
+git clone https://github.com/conjurdemos/conjur-admin-script.git
+cd conjur-admin-script
+bash conjur_admin.sh
+Select the desired option
+
 
 ## Contributing
 
@@ -42,7 +30,7 @@ of our development workflows, please see our [contributing guide](CONTRIBUTING.m
 
 ## License
 
-Copyright (c) 2020 CyberArk Software Ltd. All rights reserved.
+Copyright (c) 2024 CyberArk Software Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

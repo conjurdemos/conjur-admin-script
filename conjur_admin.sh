@@ -576,6 +576,44 @@ function variable_show() {
     done
 }
 
+function grant_read_permissions() {
+  # This script provides read permissions over every object in Conjur
+
+  get_user_input
+  authenticate
+
+  # Prepare output directory
+  mkdir -p ~/policies_output
+  cd ~/policies_output || exit 1  # Safeguard for directory navigation failure
+
+  # Define an array of resources to iterate over
+  resource_types=("policy" "user" "host" "webservice" "layer" "group")
+
+  # Function to export and give read permissions to each resource
+  grant_permissions() {
+    local resource="$1"  # Define local variable for resource
+
+    # Export resources list
+    conjur list -k "$resource" | awk -F ":" '{OFS=":"; $1=""; print substr($0,2)}' | sed 's/[",]//g' > "$resource.out"
+    
+    # Loop through each resource and assign read permissions
+    while IFS= read -r resource_name; do
+      curl -s -k -X POST "https://$conjururl/policies/$account/policy/root" \
+        -H "Authorization: Token token=\"$TOKEN\"" \
+        -H "Content-Type: text/plain" \
+        --data "- !permit\n  role: !host policyReader\n  privileges: [ read ]\n  resources: !${resource} ${resource_name}"
+      echo "$resource_name"
+    done < "$resource.out"
+  }
+
+  # Iterate over each resource type and grant permissions
+  for resource in "${resource_types[@]}"; do
+    grant_permissions "$resource"
+  done
+
+  echo "Export done, please check ~/policies_output/* folders"
+}
+
 
 function show_menu() {
 	
@@ -599,6 +637,7 @@ function show_menu() {
     echo "5) Fetch Secret Values in Bulk"
     echo "6) Conjur Objects List"
     echo "7) Conjur Variable Show"
+    echo "8) Grant Read Permissions"
     echo "Q) Quit"
     echo "====================================="
 }
@@ -629,6 +668,9 @@ while true; do
 	        ;;
         7)
             variable_show
+            ;;
+        8)
+            grant_read_permissions
             ;;
         N|n)
             perform_action_n

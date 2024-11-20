@@ -3,7 +3,6 @@ A powerful automation script for managing and interacting with CyberArk Conjur.
 This repository provides an easy-to-use tool for common administrative tasks.
 
 ## Certification level
-{Certified}
 ![](https://img.shields.io/badge/Certification%20Level-Certified-6C757D?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
 
 This repo is a **Certified** level project. It's been reviewed by CyberArk to verify that it will securely

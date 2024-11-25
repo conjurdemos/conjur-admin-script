@@ -128,6 +128,8 @@ tee $folder/checker.sh <<EOF > /dev/null
   echo '=========================================================================='
   echo '## /etc/resolv.conf' ; echo ; cat /etc/resolv.conf ; echo
   echo '=========================================================================='
+  echo '## RedHat Release' ; echo ; cat /etc/redhat-release ; echo
+  echo '=========================================================================='
   echo '## uname -a' ; echo ; uname -a ; echo
   echo '=========================================================================='
   echo '## Selinux Status' ; echo ; sestatus ; echo

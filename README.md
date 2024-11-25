@@ -16,9 +16,11 @@ Other functions can work with previous versions.
 
 ## Usage instructions
 
+```
 git clone https://github.com/conjurdemos/conjur-admin-script.git
 cd conjur-admin-script
 bash conjur_admin.sh
+```
 Select the desired option
 
 

@@ -578,6 +578,7 @@ function variable_show() {
     done
 }
 
+
 function grant_read_permissions() {
   # This script provides read permissions over every object in Conjur
 
@@ -597,14 +598,30 @@ function grant_read_permissions() {
 
     # Export resources list
     conjur list -k "$resource" | awk -F ":" '{OFS=":"; $1=""; print substr($0,2)}' | sed 's/[",]//g' > "$resource.out"
-    
+
     # Loop through each resource and assign read permissions
     while IFS= read -r resource_name; do
+      # Safeguard for empty resource names
+      if [[ -z "$resource_name" ]]; then
+        continue
+      fi
+
+      # Properly format the YAML policy payload
+      yaml_payload=$(cat <<EOF
+- !permit
+  role: !host policyReader
+  privileges: [ read ]
+  resources: !${resource} ${resource_name}
+EOF
+      )
+
+      # Make the API call
       curl -s -k -X POST "https://$conjururl/policies/$account/policy/root" \
         -H "Authorization: Token token=\"$TOKEN\"" \
         -H "Content-Type: text/plain" \
-        --data "- !permit\n  role: !host policyReader\n  privileges: [ read ]\n  resources: !${resource} ${resource_name}"
-      echo "$resource_name"
+        --data "$yaml_payload"
+
+      echo "Processed resource: $resource_name"
     done < "$resource.out"
   }
 
@@ -615,6 +632,7 @@ function grant_read_permissions() {
 
   echo "Export done, please check ~/policies_output/* folders"
 }
+
 
 
 function show_menu() {
@@ -662,12 +680,12 @@ while true; do
         4)
             export_policies
             ;;
-	    5)
-	        get_secrets_values
-	        ;;
+	5)
+	    get_secrets_values
+	    ;;
         6)
-	        get_objects_list
-	        ;;
+	    get_objects_list
+	    ;;
         7)
             variable_show
             ;;

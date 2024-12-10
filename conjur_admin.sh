@@ -379,8 +379,8 @@ echo "Using Conjur Account: $account"
 echo "Username: $username"
 
 # Fetch the token using the username and password
+echo "Retrieving Token..."
 AUTHN_TOKEN=$(curl -s -k --user "$username:$password" https://"$conjururl"/authn/"$account"/login)
-echo "Token retrieved successfully."
 
 # Check if the token is empty
 if [[ -z "$AUTHN_TOKEN" ]]; then
@@ -580,57 +580,69 @@ function variable_show() {
 
 
 function grant_read_permissions() {
-  # This script provides read permissions over every object in Conjur
-
   get_user_input
   authenticate
+  read -p "Enter desired username for Read-only user: " readuser
 
-  # Prepare output directory
-  mkdir -p ~/policies_output
-  cd ~/policies_output || exit 1  # Safeguard for directory navigation failure
+# Function to process entities and apply permissions
+apply_permissions() {
+    local entity_type=$1
+    local policy_file="${entity_type}.out"
 
-  # Define an array of resources to iterate over
-  resource_types=("policy" "user" "host" "webservice" "layer" "group")
+    # Export policies for the given entity type
+    conjur list -k "$entity_type" | awk -F ":" '{
+      for (i=3; i<=NF; i++) {
+        if (i==3) {
+          printf $i;
+        } else {
+          printf ":%s", $i;
+        }
+      }
+      printf "\n";
+    }' | sed 's/[",]//g' > "$policy_file"
 
-  # Function to export and give read permissions to each resource
-  grant_permissions() {
-    local resource="$1"  # Define local variable for resource
+    # Apply read permissions
+    while read -r resource; do
+        # Skip empty or invalid IDs
+        if [[ -z "$resource" || "$resource" =~ ^[[:space:]]*$ ]]; then
+            echo "Skipping empty or invalid resource ID for $entity_type."
+            continue
+        fi
 
-    # Export resources list
-    conjur list -k "$resource" | awk -F ":" '{OFS=":"; $1=""; print substr($0,2)}' | sed 's/[",]//g' > "$resource.out"
-
-    # Loop through each resource and assign read permissions
-    while IFS= read -r resource_name; do
-      # Safeguard for empty resource names
-      if [[ -z "$resource_name" ]]; then
-        continue
-      fi
-
-      # Properly format the YAML policy payload
-      yaml_payload=$(cat <<EOF
+        # Ensure valid YAML structure
+        yaml_payload="---
 - !permit
-  role: !host policyReader
-  privileges: [ read ]
-  resources: !${resource} ${resource_name}
-EOF
-      )
+  role: !host $readuser
+  privileges: [read]
+  resources: !${entity_type} \"$resource\""
 
-      # Make the API call
-      curl -s -k -X POST "https://$conjururl/policies/$account/policy/root" \
-        -H "Authorization: Token token=\"$TOKEN\"" \
-        -H "Content-Type: text/plain" \
-        --data "$yaml_payload"
+        curl -s -k -X POST "https://$conjururl/policies/$account/policy/root" \
+             -H "Authorization: Token token=\"$TOKEN\"" \
+             -H "Content-Type: text/plain" \
+             --data "$yaml_payload"
 
-      echo "Processed resource: $resource_name"
-    done < "$resource.out"
-  }
+        echo "Applied read permission to $entity_type: $resource"
+    done < "$policy_file"
+}
 
-  # Iterate over each resource type and grant permissions
-  for resource in "${resource_types[@]}"; do
-    grant_permissions "$resource"
-  done
+# Create output directory for policies
+output_dir=~/policies_output
+mkdir -p "$output_dir"
+cd "$output_dir" || exit 1
 
-  echo "Export done, please check ~/policies_output/* folders"
+# Define entities to process
+entities=("policy" "user" "host" "webservice" "layer" "group")
+
+# Process each entity type
+for entity in "${entities[@]}"; do
+    echo "Processing $entity..."
+    apply_permissions "$entity"
+done
+
+echo "Export done. Please check '$output_dir' for policy files."
+
+exit 0
+
 }
 
 

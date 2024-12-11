@@ -66,7 +66,7 @@ Menu Options:
 
 👤7. Grant Read Permissions
 
- Assigns read permissions to a predefined user, policyReader, created at the root level. This action applies to all policies in the system, ensuring that policyReader has the necessary access for auditing or other operations.
+ Assigns read permissions to a host, which is created at the root level if it does not exist. If the host already exists, permissions are granted. This action applies to all objects in conjur, ensuring that it has the necessary access for auditing or other read-only operations.
 
 ## Contributing
 

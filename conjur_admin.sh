@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Common functions (used by different menu options)
 # Function to prompt for user input with defaults from variable.sh
 function get_user_input() {
 
@@ -286,7 +287,7 @@ compare_parameters() {
     echo "$parameter_name: OK (Consistent)"
 }
 
-# Main script starts here
+# Main script writes here:
 CONJUR_CHECKER_LOG="./conjur_checker.log"
 
 # Check if the conjur_checker.log file exists
@@ -372,31 +373,14 @@ echo "This function exports Conjur Loaded policies, creating policy tree structu
 
 # Prompt user for input
 get_user_input
+authenticate
 
 # Display input
 echo "Using Conjur URL: $conjururl"
 echo "Using Conjur Account: $account"
 echo "Username: $username"
 
-# Fetch the token using the username and password
-echo "Retrieving Token..."
-AUTHN_TOKEN=$(curl -s -k --user "$username:$password" https://"$conjururl"/authn/"$account"/login)
 
-# Check if the token is empty
-if [[ -z "$AUTHN_TOKEN" ]]; then
-    echo "Error: No token received from the login request."
-    exit 1
-fi
-
-# Get Authotization TOKEN
-TOKEN=$(curl -s -k --location --globoff "https://"$conjururl"/api/authn/"$account"/admin/authenticate" \
-  --header "Accept-Encoding: base64" \
-  --data "$AUTHN_TOKEN")
-
-# Only for debugging
-# echo "Authentication token: $TOKEN"
-
-# Export Current Policies structure:
 mkdir -p ~/policies_output
 cd ~/policies_output
 conjur list -k policy | awk -F ":"  ' { print $3 } ' | sed 's/..$//' > policies.out
@@ -431,7 +415,6 @@ echo
 
 # Prompt user for input
 get_user_input
-
 authenticate
 
 # Export all variables for the logged in user:
@@ -472,29 +455,13 @@ function get_objects_list() {
 
   # Prompt user for input
   get_user_input  # This will gather the values and set variables
+  authenticate
 
   # Now you can use $conjururl, $account, $username, and $password in your script
   echo "Using Conjur URL: $conjururl"
   echo "Using Conjur Account: $account"
   echo "Username: $username"
 
-  # Fetch the token using the username and password
-  AUTHN_TOKEN=$(curl -s -k --user "$username:$password" https://"$conjururl"/authn/"$account"/login)
-  echo "Token retrieved successfully."
-
-  # Check if the token is empty
-  if [[ -z "$AUTHN_TOKEN" ]]; then
-      echo "Error: No token received from the login request."
-      exit 1
-  fi
-
-  # Get Authotization TOKEN
-  TOKEN=$(curl -s -k --location --globoff "https://"$conjururl"/api/authn/"$account"/admin/authenticate" \
-    --header "Accept-Encoding: base64" \
-    --data "$AUTHN_TOKEN")
-
-  # Only for debugging
-  # echo "Authentication token: $TOKEN"
 
 # Api call for objects summary
 curl -s -k -X GET "https://"$conjururl"/resources/"$account"" -H "Authorization: Token token=\"$TOKEN\"" -H "Content-Type: application/x-yaml" | jq '
@@ -580,9 +547,34 @@ function variable_show() {
 
 
 function grant_read_permissions() {
+  
   get_user_input
+  read -p "Input the host id to grant Read-only permissions to all objects: " readhost
   authenticate
-  read -p "Enter desired username for Read-only user: " readuser
+
+# Create the host to grant read permissions to all objects:
+
+while true; do
+  read -p "WARNING: host and api_key will show in Plain Text when a new host is created. Agree? (y/n): " answer
+  [[ "$answer" =~ ^[Yy]$ ]] && break
+done
+
+echo
+
+output=$(curl -s -k -H "Content-Type: application/json" -H "Authorization: Token token=\"$TOKEN\"" -X POST --data $"- !host "$readhost"" "https://"$conjururl"/policies/"$account"/policy/root" && echo)
+
+echo "$output"
+echo "===================================================================================================================================================="
+echo
+
+if ! echo "$output" | grep -q "api_key"; then
+  echo "WARNING: Host $readhost Already exists in Conjur. Processing permission grants." && echo
+else
+  while true; do
+    read -p "Have you stored host ID and API key in a safe place? (y/n): " answer
+    [[ "$answer" =~ ^[Yy]$ ]] && break
+  done
+fi
 
 # Function to process entities and apply permissions
 apply_permissions() {
@@ -599,7 +591,7 @@ apply_permissions() {
         }
       }
       printf "\n";
-    }' | sed 's/[",]//g' > "$policy_file"
+    }' | sed 's/[",]//g' | grep -v '^$' > "$policy_file"
 
     # Apply read permissions
     while read -r resource; do
@@ -612,7 +604,7 @@ apply_permissions() {
         # Ensure valid YAML structure
         yaml_payload="---
 - !permit
-  role: !host $readuser
+  role: !host $readhost
   privileges: [read]
   resources: !${entity_type} \"$resource\""
 
@@ -639,13 +631,9 @@ for entity in "${entities[@]}"; do
     apply_permissions "$entity"
 done
 
-echo "Export done. Please check '$output_dir' for policy files."
-
-exit 0
+echo "Read-only permissions granted to host "$readhost". Temporary files stored in '$output_dir'."
 
 }
-
-
 
 function show_menu() {
 	
